@@ -173,7 +173,7 @@ const Graph = ({ data }) => {
     cycleNodes.forEach(nodeId => {
       const node = cy.getElementById(nodeId);
       if (node.length > 0 && !node.data('suspicious')) {
-        // Only apply yellow border if not suspicious (suspicious nodes stay red)
+        // Only apply yellow border to cycle nodes that are not already marked as suspicious
         node.style({
           'border-width': '4px',
           'border-color': '#fbbf24',
