@@ -44,7 +44,8 @@ const Upload = ({ onDataReceived }) => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const response = await axios.post('http://localhost:8000/analyze', formData, {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const response = await axios.post(`${backendUrl}/analyze`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setStatus('success');

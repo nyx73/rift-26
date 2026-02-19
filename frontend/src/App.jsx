@@ -6,13 +6,21 @@ import Table from './components/Table';
 import SummaryCards from './components/SummaryCards';
 import Charts from './components/Charts';
 import SuspiciousTable from './components/SuspiciousTable';
+import Notification from './components/Notification';
 
 function App() {
   const [analysisData, setAnalysisData] = useState(null);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [highlightedIds, setHighlightedIds] = useState([]);
 
   const handleDataReceived = (data) => {
     setAnalysisData(data);
+    setHighlightedIds([]);
+    setActiveSection('dashboard');
+  };
+
+  const handleHighlight = (ids) => {
+    setHighlightedIds(ids);
     setActiveSection('dashboard');
   };
 
@@ -66,9 +74,9 @@ function App() {
           </div>
         );
       case 'fraud-rings':
-        return <Table data={analysisData} />;
+        return <Table data={analysisData} onHighlight={handleHighlight} />;
       case 'suspicious':
-        return <SuspiciousTable data={analysisData} />;
+        return <SuspiciousTable data={analysisData} onHighlight={handleHighlight} />;
       case 'analytics':
         return (
           <div className="max-w-2xl">
@@ -121,7 +129,7 @@ function App() {
             {/* Graph + Charts */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
               <div className="xl:col-span-2">
-                <Graph data={analysisData} />
+                <Graph data={analysisData} highlightedIds={highlightedIds} />
               </div>
               <div className="xl:col-span-1">
                 <Charts data={analysisData} />
@@ -129,10 +137,10 @@ function App() {
             </div>
 
             {/* Suspicious Accounts Table */}
-            <SuspiciousTable data={analysisData} />
+            <SuspiciousTable data={analysisData} onHighlight={handleHighlight} />
 
             {/* Fraud Rings Table */}
-            <Table data={analysisData} />
+            <Table data={analysisData} onHighlight={handleHighlight} />
           </div>
         );
     }
@@ -153,14 +161,7 @@ function App() {
           </div>
           <div className="flex items-center gap-3">
             {/* Notification */}
-            <button className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors relative">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {analysisData && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              )}
-            </button>
+            <Notification data={analysisData} onHighlight={handleHighlight} />
             {/* Settings */}
             <button className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

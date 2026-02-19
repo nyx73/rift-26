@@ -24,7 +24,7 @@ const patternExplanations = {
 const cycleExplanation = (pattern) =>
   `Circular fund routing (${pattern.replace(/_/g, ' ')}): account is part of a money-laundering loop.`;
 
-const SuspiciousTable = ({ data }) => {
+const SuspiciousTable = ({ data, onHighlight }) => {
   const [selected, setSelected] = useState(null);
 
   const accounts = data?.suspicious_accounts || [];
@@ -81,11 +81,18 @@ const SuspiciousTable = ({ data }) => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {acc.detected_patterns.map((p) => (
-                        <span key={p} className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 font-medium">
-                          {p}
-                        </span>
-                      ))}
+                      {acc.detected_patterns.map((p) => {
+                        const tip = p.startsWith('cycle_') ? cycleExplanation(p) : (patternExplanations[p] || 'Suspicious behaviour detected.');
+                        return (
+                          <span
+                            key={p}
+                            title={tip}
+                            className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 font-medium cursor-help"
+                          >
+                            {p}
+                          </span>
+                        );
+                      })}
                     </div>
                   </td>
                   <td className="px-4 py-3 font-mono text-purple-700 text-xs">
@@ -95,12 +102,27 @@ const SuspiciousTable = ({ data }) => {
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${cls}`}>{label}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => setSelected(isSelected ? null : acc.account_id)}
-                      className="text-blue-600 hover:text-blue-800 text-xs font-medium underline"
-                    >
-                      {isSelected ? 'Hide' : 'Why Flagged?'}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setSelected(isSelected ? null : acc.account_id)}
+                        className="text-blue-600 hover:text-blue-800 text-xs font-medium underline"
+                      >
+                        {isSelected ? 'Hide' : 'Why Flagged?'}
+                      </button>
+                      {onHighlight && (
+                        <button
+                          onClick={() => onHighlight([acc.account_id])}
+                          title="Highlight this account in the graph"
+                          className="flex items-center gap-1 px-2 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded text-xs font-medium transition-colors"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          Graph
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
