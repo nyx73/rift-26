@@ -1,8 +1,17 @@
 import { useState } from 'react';
 
-const Table = ({ data }) => {
+const Table = ({ data, onHighlight }) => {
   const [sortBy, setSortBy] = useState('risk_score');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [copiedRing, setCopiedRing] = useState(null);
+
+  const handleCopyIds = (ring) => {
+    const ids = ring.member_accounts.join(', ');
+    navigator.clipboard.writeText(ids).then(() => {
+      setCopiedRing(ring.ring_id);
+      setTimeout(() => setCopiedRing(null), 1500);
+    });
+  };
 
   if (!data || !data.fraud_rings || data.fraud_rings.length === 0) {
     return (
@@ -106,6 +115,7 @@ const Table = ({ data }) => {
                 </th>
               ))}
               <th className="px-4 py-3 text-left font-semibold">Member Account IDs</th>
+              <th className="px-4 py-3 text-left font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -127,6 +137,44 @@ const Table = ({ data }) => {
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs max-w-xs truncate">
                   {ring.member_accounts.join(', ')}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleCopyIds(ring)}
+                      title="Copy member account IDs to clipboard"
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                    >
+                      {copiedRing === ring.ring_id ? (
+                        <>
+                          <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy IDs
+                        </>
+                      )}
+                    </button>
+                    {onHighlight && (
+                      <button
+                        onClick={() => onHighlight(ring.member_accounts)}
+                        title="Highlight ring members in graph"
+                        className="flex items-center gap-1 px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-xs font-medium transition-colors"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Highlight Ring
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

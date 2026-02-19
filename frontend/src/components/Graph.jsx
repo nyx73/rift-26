@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react';
 import cytoscape from 'cytoscape';
 
-const Graph = ({ data }) => {
+const getBaseNodeStyle = (isSuspicious) => ({
+  'border-width': isSuspicious ? '3px' : '0px',
+  'border-color': isSuspicious ? '#dc2626' : '#3b82f6',
+  'opacity': 1,
+});
+
+const Graph = ({ data, highlightedIds }) => {
   const cyRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -138,8 +144,7 @@ const Graph = ({ data }) => {
       if (cleanup) { cleanup(); node.removeData('tooltipCleanup'); }
       const isSuspicious = node.data('suspicious');
       node.style({
-        'border-width': isSuspicious ? '3px' : '0px',
-        'border-color': isSuspicious ? '#dc2626' : '#3b82f6'
+        ...getBaseNodeStyle(isSuspicious),
       });
     });
 
@@ -157,6 +162,32 @@ const Graph = ({ data }) => {
     cyRef.current = cy;
     return () => { if (cyRef.current) cyRef.current.destroy(); };
   }, [data]);
+
+  // Effect: highlight specific nodes when highlightedIds changes
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy) return;
+
+    // Reset all nodes to their base style first
+    cy.nodes().forEach((node) => {
+      node.style(getBaseNodeStyle(node.data('suspicious')));
+    });
+
+    if (!highlightedIds || highlightedIds.length === 0) return;
+
+    const idSet = new Set(highlightedIds);
+    cy.nodes().forEach((node) => {
+      if (idSet.has(node.id())) {
+        node.style({
+          'border-width': '4px',
+          'border-color': '#a855f7',
+          'opacity': 1,
+        });
+      } else {
+        node.style({ 'opacity': 0.3 });
+      }
+    });
+  }, [highlightedIds]);
 
   const detectCycles = (cy) => {
     const cycles = [];
